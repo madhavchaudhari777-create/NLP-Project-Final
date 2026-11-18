@@ -387,19 +387,48 @@ class LocalEvaluator:
 
         # Estimate relevance from topic evidence or reference overlap.
         if topic and total_concepts:
-            relevance = min(
-                10,
-                round(5 + 5 * len(matched_concepts) / total_concepts),
+            relevance = round(
+                10 * len(matched_concepts) / total_concepts
             )
         elif (
             isinstance(reference_answer, str)
             and reference_answer.strip()
         ):
-            sem_sim = semantic_info.get("similarity", 0.0) if semantic_info else coverage
+            sem_sim = (
+                semantic_info.get("similarity", 0.0)
+                if semantic_info else coverage
+            )
             effective_overlap = max(coverage, sem_sim)
-            relevance = round(3 + 7 * effective_overlap)
+            relevance = round(effective_overlap * 10)
         else:
-            relevance = 5 if word_count >= 5 else 2
+            relevance = 0
+
+# Reject answers with no meaningful relevance.
+        if relevance < 3:
+            return {
+                "score": 0,
+                "max_score": max_score,
+                "correctness": 0,
+                "relevance": relevance,
+                "completeness": 0,
+                "clarity": 0,
+                "strengths": [],
+                "improvements": [
+                    "Your answer does not address the interview question.",
+                    "Review the correct answer and try to understand the key concepts."
+                ],
+                "feedback": "Irrelevant Answer: Your response does not contain sufficient relevant information.",
+                "answer_status": "irrelevant",
+                "evaluation_method": "local_fallback",
+                "semantic_similarity": (
+                    semantic_info.get("similarity", 0.0)
+                    if semantic_info else None
+                ),
+                "semantic_engine": (
+                    semantic_info.get("engine", "none")
+                    if semantic_info else "none"
+                ),
+            }
 
         # Word count is only a rough completeness indicator.
         if word_count < 5:

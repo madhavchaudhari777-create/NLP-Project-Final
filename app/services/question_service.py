@@ -1,29 +1,24 @@
 
-import json
-import os
 import random
-
-from dotenv import load_dotenv
-from openai import OpenAI
-
-
-load_dotenv()
 
 
 class QuestionService:
-    """Select relevant questions and generate additional ones when needed."""
+    """Offline question bank with strict role and skill matching."""
+
+    VALID_DIFFICULTIES = {"Beginner", "Intermediate", "Advanced"}
+    MAX_QUESTIONS = 10
 
     QUESTION_BANK = [
+        # -------------------------------------------------
+        # PYTHON DEVELOPER
+        # -------------------------------------------------
         {
             "id": 1,
             "question": "What is a variable in Python?",
             "role": "python developer",
             "skills": ["python"],
             "difficulty": "Beginner",
-            "reference_answer": (
-                "A variable is a name that refers to a value or object. "
-                "Python determines the type dynamically."
-            ),
+            "reference_answer": "A variable is a name that refers to a value or object. Python determines the type dynamically."
         },
         {
             "id": 2,
@@ -31,10 +26,7 @@ class QuestionService:
             "role": "python developer",
             "skills": ["python"],
             "difficulty": "Beginner",
-            "reference_answer": (
-                "Lists are mutable, while tuples are immutable. "
-                "Both can store multiple items."
-            ),
+            "reference_answer": "Lists are mutable, while tuples are immutable. Both can store multiple items."
         },
         {
             "id": 3,
@@ -42,10 +34,7 @@ class QuestionService:
             "role": "python developer",
             "skills": ["python"],
             "difficulty": "Intermediate",
-            "reference_answer": (
-                "A decorator wraps a function or class to extend or "
-                "modify its behavior without directly changing its code."
-            ),
+            "reference_answer": "A decorator wraps a function or class to extend or modify its behavior without directly changing its code."
         },
         {
             "id": 4,
@@ -53,10 +42,7 @@ class QuestionService:
             "role": "python developer",
             "skills": ["python"],
             "difficulty": "Intermediate",
-            "reference_answer": (
-                "A generator yields values lazily, usually using yield, "
-                "which can reduce memory usage for large sequences."
-            ),
+            "reference_answer": "A generator yields values lazily, usually using yield, which can reduce memory usage for large sequences."
         },
         {
             "id": 5,
@@ -64,35 +50,27 @@ class QuestionService:
             "role": "python developer",
             "skills": ["python"],
             "difficulty": "Advanced",
-            "reference_answer": (
-                "In conventional CPython builds, the GIL generally "
-                "allows only one thread at a time to execute Python "
-                "bytecode. Its effects depend on the workload and build."
-            ),
+            "reference_answer": "In conventional CPython builds, the GIL generally allows only one thread at a time to execute Python bytecode."
         },
+
+        # -------------------------------------------------
+        # MACHINE LEARNING ENGINEER
+        # -------------------------------------------------
         {
             "id": 6,
             "question": "What is supervised machine learning?",
             "role": "machine learning engineer",
             "skills": ["machine learning", "ml", "python"],
             "difficulty": "Beginner",
-            "reference_answer": (
-                "Supervised learning trains a model using labeled "
-                "examples to predict outputs for new inputs."
-            ),
+            "reference_answer": "Supervised learning trains a model using labeled examples to predict outputs for new inputs."
         },
         {
             "id": 7,
-            "question": (
-                "What is the difference between classification and regression?"
-            ),
+            "question": "What is the difference between classification and regression?",
             "role": "machine learning engineer",
             "skills": ["machine learning", "ml"],
             "difficulty": "Beginner",
-            "reference_answer": (
-                "Classification predicts categories, while regression "
-                "predicts numerical values."
-            ),
+            "reference_answer": "Classification predicts categories, while regression predicts numerical values."
         },
         {
             "id": 8,
@@ -100,36 +78,27 @@ class QuestionService:
             "role": "machine learning engineer",
             "skills": ["machine learning", "ml"],
             "difficulty": "Intermediate",
-            "reference_answer": (
-                "Overfitting occurs when a model learns training-specific "
-                "patterns that do not generalize. Regularization, "
-                "cross-validation, more data, and simpler models can help."
-            ),
+            "reference_answer": "Overfitting occurs when a model learns training-specific patterns that do not generalize. Regularization, cross-validation and more data can help."
         },
         {
             "id": 9,
-            "question": (
-                "Why might you choose a random forest over a single decision tree?"
-            ),
+            "question": "Why might you choose a random forest over a single decision tree?",
             "role": "machine learning engineer",
             "skills": ["machine learning", "ml"],
             "difficulty": "Advanced",
-            "reference_answer": (
-                "A random forest combines multiple randomized trees, "
-                "often reducing variance and improving generalization "
-                "compared with a single decision tree."
-            ),
+            "reference_answer": "A random forest combines multiple randomized trees, often reducing variance and improving generalization."
         },
+
+        # -------------------------------------------------
+        # SOFTWARE DEVELOPER
+        # -------------------------------------------------
         {
             "id": 10,
             "question": "What is a primary key in a database?",
             "role": "software developer",
             "skills": ["sql", "database"],
             "difficulty": "Beginner",
-            "reference_answer": (
-                "A primary key uniquely identifies each row in a table "
-                "and cannot contain NULL values."
-            ),
+            "reference_answer": "A primary key uniquely identifies each row in a table and cannot contain NULL values."
         },
         {
             "id": 11,
@@ -137,10 +106,7 @@ class QuestionService:
             "role": "software developer",
             "skills": ["sql", "database"],
             "difficulty": "Intermediate",
-            "reference_answer": (
-                "WHERE filters rows before grouping, while HAVING "
-                "filters groups after GROUP BY."
-            ),
+            "reference_answer": "WHERE filters rows before grouping, while HAVING filters groups after GROUP BY."
         },
         {
             "id": 12,
@@ -148,15 +114,337 @@ class QuestionService:
             "role": "software developer",
             "skills": ["programming", "operating systems"],
             "difficulty": "Advanced",
-            "reference_answer": (
-                "Processes have separate address spaces by default, "
-                "while threads within a process share memory and resources."
-            ),
+            "reference_answer": "Processes have separate address spaces by default, while threads within a process share memory and resources."
+        },
+
+        # -------------------------------------------------
+        # FRONTEND DEVELOPER
+        # -------------------------------------------------
+        {
+            "id": 13,
+            "question": "What is the difference between let, const, and var in JavaScript?",
+            "role": "frontend developer",
+            "skills": ["javascript", "js"],
+            "difficulty": "Beginner",
+            "reference_answer": "var is function-scoped, while let and const are block-scoped. let allows reassignment, whereas const prevents reassignment of the binding."
+        },
+        {
+            "id": 14,
+            "question": "What is the DOM in JavaScript?",
+            "role": "frontend developer",
+            "skills": ["javascript", "html5", "html", "dom"],
+            "difficulty": "Beginner",
+            "reference_answer": "The Document Object Model represents an HTML document as a tree of objects that JavaScript can access and modify."
+        },
+        {
+            "id": 15,
+            "question": "Explain the CSS box model.",
+            "role": "frontend developer",
+            "skills": ["css3", "css", "html5"],
+            "difficulty": "Beginner",
+            "reference_answer": "The CSS box model consists of content, padding, border, and margin."
+        },
+        {
+            "id": 16,
+            "question": "What is event delegation in JavaScript?",
+            "role": "frontend developer",
+            "skills": ["javascript", "js", "dom"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Event delegation attaches one event listener to a parent element to handle events from its descendants using event bubbling."
+        },
+        {
+            "id": 17,
+            "question": "What is the difference between Flexbox and CSS Grid?",
+            "role": "frontend developer",
+            "skills": ["css3", "css"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Flexbox is primarily a one-dimensional layout system, while CSS Grid handles two-dimensional layouts with rows and columns."
+        },
+        {
+            "id": 18,
+            "question": "How can you improve the performance of a frontend web application?",
+            "role": "frontend developer",
+            "skills": ["javascript", "html5", "css3"],
+            "difficulty": "Advanced",
+            "reference_answer": "Performance can be improved through code splitting, lazy loading, image optimization, caching and reducing unnecessary rendering."
+        },
+
+        # -------------------------------------------------
+        # DEVOPS ENGINEER
+        # -------------------------------------------------
+        {
+            "id": 19,
+            "question": "What is Docker and why is it used?",
+            "role": "devops engineer",
+            "skills": ["docker"],
+            "difficulty": "Beginner",
+            "reference_answer": "Docker packages applications and their dependencies into containers, providing consistent environments."
+        },
+        {
+            "id": 20,
+            "question": "What is the difference between a Docker image and a container?",
+            "role": "devops engineer",
+            "skills": ["docker"],
+            "difficulty": "Beginner",
+            "reference_answer": "An image is a read-only template containing application files and dependencies. A container is an instance of that image."
+        },
+        {
+            "id": 21,
+            "question": "What is the purpose of Linux in DevOps?",
+            "role": "devops engineer",
+            "skills": ["linux"],
+            "difficulty": "Beginner",
+            "reference_answer": "Linux provides an operating system environment for servers, automation, scripting, process management and deployment."
+        },
+        {
+            "id": 22,
+            "question": "What is Infrastructure as Code?",
+            "role": "devops engineer",
+            "skills": ["terraform", "iac"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Infrastructure as Code manages infrastructure through machine-readable configuration files, allowing repeatable and version-controlled provisioning."
+        },
+        {
+            "id": 23,
+            "question": "What is a CI/CD pipeline?",
+            "role": "devops engineer",
+            "skills": ["ci/cd", "docker", "aws"],
+            "difficulty": "Intermediate",
+            "reference_answer": "CI/CD automates integration, testing and delivery or deployment of software changes."
+        },
+        {
+            "id": 24,
+            "question": "How does Terraform manage infrastructure state?",
+            "role": "devops engineer",
+            "skills": ["terraform"],
+            "difficulty": "Advanced",
+            "reference_answer": "Terraform maintains a state file that maps configuration to real infrastructure resources and uses it to plan changes."
+        },
+
+        # -------------------------------------------------
+        # BACKEND DEVELOPER
+        # -------------------------------------------------
+        {
+            "id": 25,
+            "question": "What is an API?",
+            "role": "backend developer",
+            "skills": ["api", "backend"],
+            "difficulty": "Beginner",
+            "reference_answer": "An API defines how software components communicate through a defined set of operations and data formats."
+        },
+        {
+            "id": 26,
+            "question": "What is the difference between GET and POST requests?",
+            "role": "backend developer",
+            "skills": ["api", "http", "backend"],
+            "difficulty": "Beginner",
+            "reference_answer": "GET retrieves a resource, while POST submits data for processing or resource creation."
+        },
+        {
+            "id": 27,
+            "question": "What is middleware in a backend application?",
+            "role": "backend developer",
+            "skills": ["backend", "api"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Middleware processes requests or responses between the client and application route handlers."
+        },
+        {
+            "id": 28,
+            "question": "Explain authentication and authorization.",
+            "role": "backend developer",
+            "skills": ["backend", "security", "api"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Authentication verifies identity, while authorization determines what an authenticated user is permitted to do."
+        },
+        {
+            "id": 29,
+            "question": "How would you design a scalable backend service?",
+            "role": "backend developer",
+            "skills": ["backend", "api", "database"],
+            "difficulty": "Advanced",
+            "reference_answer": "A scalable backend can use stateless services, caching, database optimization, load balancing, asynchronous processing and monitoring."
+        },
+
+        # -------------------------------------------------
+        # FULL STACK DEVELOPER
+        # -------------------------------------------------
+        {
+            "id": 30,
+            "question": "What is React and why is it used?",
+            "role": "full stack developer",
+            "skills": ["react", "javascript"],
+            "difficulty": "Beginner",
+            "reference_answer": "React is a JavaScript library for building user interfaces using reusable components and declarative rendering."
+        },
+        {
+            "id": 31,
+            "question": "What is TypeScript and how is it different from JavaScript?",
+            "role": "full stack developer",
+            "skills": ["typescript", "javascript"],
+            "difficulty": "Beginner",
+            "reference_answer": "TypeScript is a superset of JavaScript that adds static type checking and compiles to JavaScript."
+        },
+        {
+            "id": 32,
+            "question": "How does a React frontend communicate with a backend API?",
+            "role": "full stack developer",
+            "skills": ["react", "javascript", "api", "backend"],
+            "difficulty": "Intermediate",
+            "reference_answer": "A React frontend can use fetch or Axios to send HTTP requests to backend API endpoints and process the returned data."
+        },
+        {
+            "id": 33,
+            "question": "Why is TypeScript useful in a large full stack application?",
+            "role": "full stack developer",
+            "skills": ["typescript", "react"],
+            "difficulty": "Advanced",
+            "reference_answer": "TypeScript provides static typing, better tooling, improved refactoring and earlier detection of type-related errors."
+        },
+
+        # -------------------------------------------------
+        # DATA SCIENTIST
+        # -------------------------------------------------
+        {
+            "id": 34,
+            "question": "What is the difference between structured and unstructured data?",
+            "role": "data scientist",
+            "skills": ["python", "data analysis"],
+            "difficulty": "Beginner",
+            "reference_answer": "Structured data follows a defined schema, while unstructured data includes formats such as text, images and audio."
+        },
+        {
+            "id": 35,
+            "question": "What is data preprocessing?",
+            "role": "data scientist",
+            "skills": ["python", "pandas", "data analysis"],
+            "difficulty": "Beginner",
+            "reference_answer": "Data preprocessing cleans and transforms raw data by handling missing values, duplicates, inconsistent formats and other issues."
+        },
+        {
+            "id": 36,
+            "question": "What is feature engineering?",
+            "role": "data scientist",
+            "skills": ["python", "machine learning", "data analysis"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Feature engineering creates or transforms input variables to improve the usefulness of data for machine learning models."
+        },
+        {
+            "id": 37,
+            "question": "How would you handle missing values in a dataset?",
+            "role": "data scientist",
+            "skills": ["python", "pandas", "data analysis"],
+            "difficulty": "Advanced",
+            "reference_answer": "Missing values can be handled by deletion, statistical imputation, model-based imputation or explicit missing-value indicators depending on the data."
+        },
+
+        # -------------------------------------------------
+        # DATA ANALYST
+        # -------------------------------------------------
+        {
+            "id": 38,
+            "question": "What is the purpose of data visualization?",
+            "role": "data analyst",
+            "skills": ["data analysis", "tableau", "power bi"],
+            "difficulty": "Beginner",
+            "reference_answer": "Data visualization presents information graphically to reveal patterns, trends and comparisons."
+        },
+        {
+            "id": 39,
+            "question": "What is the difference between INNER JOIN and LEFT JOIN?",
+            "role": "data analyst",
+            "skills": ["sql", "database"],
+            "difficulty": "Beginner",
+            "reference_answer": "INNER JOIN returns matching rows from both tables, while LEFT JOIN returns all left-table rows and matching right-table rows."
+        },
+        {
+            "id": 40,
+            "question": "What is a KPI?",
+            "role": "data analyst",
+            "skills": ["data analysis", "tableau", "power bi"],
+            "difficulty": "Intermediate",
+            "reference_answer": "A Key Performance Indicator is a measurable value used to evaluate progress toward a defined objective."
+        },
+        {
+            "id": 41,
+            "question": "How would you identify outliers in a dataset?",
+            "role": "data analyst",
+            "skills": ["python", "sql", "data analysis"],
+            "difficulty": "Advanced",
+            "reference_answer": "Outliers can be identified using box plots, the interquartile range, z-scores and domain-specific thresholds."
+        },
+
+        # -------------------------------------------------
+        # NLP ENGINEER
+        # -------------------------------------------------
+        {
+            "id": 42,
+            "question": "What is Natural Language Processing?",
+            "role": "nlp engineer",
+            "skills": ["nlp", "python"],
+            "difficulty": "Beginner",
+            "reference_answer": "Natural Language Processing is a field of AI that enables computers to process, analyze and generate human language."
+        },
+        {
+            "id": 43,
+            "question": "What is tokenization in NLP?",
+            "role": "nlp engineer",
+            "skills": ["nlp", "python"],
+            "difficulty": "Beginner",
+            "reference_answer": "Tokenization splits text into smaller units such as words, subwords or sentences."
+        },
+        {
+            "id": 44,
+            "question": "What is the difference between stemming and lemmatization?",
+            "role": "nlp engineer",
+            "skills": ["nlp", "python"],
+            "difficulty": "Intermediate",
+            "reference_answer": "Stemming removes word endings using heuristic rules, while lemmatization uses linguistic analysis to find a base dictionary form."
+        },
+        {
+            "id": 45,
+            "question": "What are word embeddings?",
+            "role": "nlp engineer",
+            "skills": ["nlp", "machine learning", "python"],
+            "difficulty": "Advanced",
+            "reference_answer": "Word embeddings represent words as dense numerical vectors that capture semantic or contextual relationships."
+        },
+
+        # -------------------------------------------------
+        # GENERAL TECHNICAL
+        # -------------------------------------------------
+        {
+            "id": 46,
+            "question": "What is the difference between a compiler and an interpreter?",
+            "role": "general",
+            "skills": ["programming", "python", "javascript"],
+            "difficulty": "Beginner",
+            "reference_answer": "A compiler translates code before execution, while an interpreter executes instructions through an interpretation process."
+        },
+        {
+            "id": 47,
+            "question": "What is the purpose of version control?",
+            "role": "general",
+            "skills": ["git", "programming"],
+            "difficulty": "Beginner",
+            "reference_answer": "Version control tracks changes to files, supports collaboration and allows developers to restore earlier versions."
+        },
+        {
+            "id": 48,
+            "question": "What is the difference between SQL and NoSQL databases?",
+            "role": "general",
+            "skills": ["sql", "database"],
+            "difficulty": "Intermediate",
+            "reference_answer": "SQL databases typically use relational tables and schemas, while NoSQL databases support models such as documents, key-value pairs and graphs."
+        },
+        {
+            "id": 49,
+            "question": "Explain time and space complexity.",
+            "role": "general",
+            "skills": ["programming", "algorithms"],
+            "difficulty": "Advanced",
+            "reference_answer": "Time complexity describes how running time grows with input size, while space complexity describes how memory usage grows."
         },
     ]
-
-    VALID_DIFFICULTIES = {"Beginner", "Intermediate", "Advanced"}
-    MAX_QUESTIONS = 10
 
     def __init__(self, question_bank=None, rng=None, client=None, model=None):
         self.question_bank = (
@@ -165,118 +453,15 @@ class QuestionService:
             else list(self.QUESTION_BANK)
         )
         self.rng = rng or random.Random()
-        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+        # Kept for compatibility with existing application code.
+        # Offline question selection does not use the API client.
         self.client = client
+        self.model = model
 
     @staticmethod
     def _normalize(value):
         return str(value).strip().lower()
-
-    def _generate_questions(
-        self, role, skills, difficulty, number_needed, existing_questions
-    ):
-        """Generate additional questions using the configured OpenAI model."""
-
-        if number_needed <= 0:
-            return []
-
-        if self.client is None:
-            api_key = os.getenv("OPENAI_API_KEY")
-
-            if not api_key or api_key == "paste_your_actual_key_here":
-                raise RuntimeError(
-                    "More questions are needed, but AI generation is "
-                    "unavailable. Add a valid OPENAI_API_KEY and ensure "
-                    "your API account has available credits."
-                )
-
-            self.client = OpenAI(api_key=api_key)
-
-        prompt = {
-            "target_role": role,
-            "skills": skills,
-            "difficulty": difficulty,
-            "number_of_questions": number_needed,
-            "existing_questions": [
-                item["question"] for item in existing_questions
-            ],
-            "requirements": [
-                "Generate distinct technical interview questions.",
-                "Match the requested role and difficulty.",
-                "Use the supplied skills when relevant.",
-                "Provide a technically correct reference answer for each.",
-                "Avoid repeating or merely rewording existing questions.",
-                "Return exactly the requested number of questions.",
-            ],
-        }
-
-        try:
-            response = self.client.responses.create(
-                model=self.model,
-                instructions=(
-                    "Create high-quality technical interview questions. "
-                    "Return valid JSON with a top-level 'questions' array. "
-                    "Each item must contain 'question' and 'reference_answer'."
-                ),
-                input=json.dumps(prompt),
-            )
-            parsed = json.loads(response.output_text)
-            generated = parsed["questions"]
-        except Exception as exc:
-            raise RuntimeError(
-                "AI question generation failed. Check API access, "
-                "available credits, network connection, and model settings."
-            ) from exc
-
-        if not isinstance(generated, list):
-            raise RuntimeError("The AI returned an invalid question list.")
-
-        seen = {
-            self._normalize(item["question"])
-            for item in existing_questions
-        }
-        results = []
-
-        for item in generated:
-            if not isinstance(item, dict):
-                continue
-
-            question = item.get("question")
-            answer = item.get("reference_answer")
-
-            if (
-                not isinstance(question, str)
-                or not question.strip()
-                or not isinstance(answer, str)
-                or not answer.strip()
-            ):
-                continue
-
-            normalized = self._normalize(question)
-
-            if normalized in seen:
-                continue
-
-            seen.add(normalized)
-            results.append({
-                "id": f"generated-{len(results) + 1}",
-                "question": question.strip(),
-                "role": self._normalize(role),
-                "skills": list(skills),
-                "difficulty": difficulty,
-                "reference_answer": answer.strip(),
-            })
-
-            if len(results) >= number_needed:
-                break
-
-        if len(results) < number_needed:
-            raise RuntimeError(
-                f"AI generated {len(results)} of "
-                f"{number_needed} required questions. Please try again."
-            )
-
-        return results
 
     def get_questions(
         self,
@@ -286,7 +471,7 @@ class QuestionService:
         number_of_questions=5,
         exclude_ids=None,
     ):
-        """Return the requested number of distinct interview questions."""
+        """Return role-specific questions without requiring an API."""
 
         if not isinstance(role, str) or not role.strip():
             raise ValueError("Role must not be empty.")
@@ -305,76 +490,73 @@ class QuestionService:
                 "number_of_questions must be a positive integer."
             )
 
-        # Reject oversized requests before any API call.
         if number_of_questions > self.MAX_QUESTIONS:
             raise ValueError(
-                f"Only up to {self.MAX_QUESTIONS} questions can be requested; "
-                f"{number_of_questions} requested."
+                f"Only up to {self.MAX_QUESTIONS} questions can be requested."
             )
 
         if skills is None:
             skills = []
 
-        exclude_ids = set(exclude_ids or [])
         requested_role = self._normalize(role)
+
         requested_skills = {
             self._normalize(skill)
             for skill in skills
             if isinstance(skill, str) and skill.strip()
         }
 
-        available = [
-            item for item in self.question_bank
-            if item.get("id") not in exclude_ids
-        ]
+        excluded = {str(item) for item in (exclude_ids or [])}
 
-        def matches_skill(item):
+        # Match role and skill aliases.
+        skill_aliases = {
+            "javascript": {"javascript", "js"},
+            "js": {"javascript", "js"},
+            "html5": {"html5", "html"},
+            "html": {"html5", "html"},
+            "css3": {"css3", "css"},
+            "css": {"css3", "css"},
+            "machine learning": {"machine learning", "ml"},
+            "ml": {"machine learning", "ml"},
+            "ci/cd": {"ci/cd", "cicd"},
+            "cicd": {"ci/cd", "cicd"},
+            "iac": {"iac", "terraform"},
+            "terraform": {"terraform", "iac"},
+        }
+
+        expanded_skills = set(requested_skills)
+
+        for skill in requested_skills:
+            expanded_skills.update(skill_aliases.get(skill, set()))
+
+        candidates = []
+
+        for item in self.question_bank:
+            if str(item.get("id")) in excluded:
+                continue
+
+            item_role = self._normalize(item.get("role", ""))
+
+            # Exact role match, or an explicitly general question.
+            if item_role != requested_role:
+                continue
+
             item_skills = {
                 self._normalize(skill)
                 for skill in item.get("skills", [])
             }
-            return bool(requested_skills.intersection(item_skills))
 
-        # Rank existing questions by relevance and requested difficulty.
-        def relevance(item):
-            item_role = self._normalize(item.get("role", ""))
-            item_difficulty = item.get("difficulty")
+            # General questions must also match a selected skill.
+            if requested_skills and not item_skills.intersection(expanded_skills):
+                continue
 
-            score = 0
+            # Do not use general questions as substitutes for unrelated skills.
+            if not requested_skills and item_role == "general":
+                continue
 
-            if item_role == requested_role:
-                score += 100
-            elif item_role == "general":
-                score += 60
+            candidates.append(item)
 
-            if matches_skill(item):
-                score += 40
-
-            if item_difficulty == difficulty:
-                score += 30
-
-            return score
-
-        candidates = sorted(
-            available,
-            key=relevance,
-            reverse=True,
-        )
-
-        # Shuffle questions with equal relevance to add variety.
-        grouped = {}
-        for item in candidates:
-            grouped.setdefault(relevance(item), []).append(item)
-
-        candidates = []
-        for score in sorted(grouped, reverse=True):
-            group = grouped[score]
-            self.rng.shuffle(group)
-            candidates.extend(group)
-
-        # Prefer questions at the requested difficulty, but use other
-        # existing questions if needed so the selected count can be met.
-        # Prefer exact difficulty matches first.
+        # Prefer exact difficulty first.
         exact_difficulty = [
             item for item in candidates
             if item.get("difficulty") == difficulty
@@ -385,40 +567,27 @@ class QuestionService:
             if item.get("difficulty") != difficulty
         ]
 
+        self.rng.shuffle(exact_difficulty)
+        self.rng.shuffle(other_difficulties)
+
         selected = exact_difficulty[:number_of_questions]
 
-        # Fill any remaining slots with other available questions only
-        # when exact-difficulty questions are insufficient.
         if len(selected) < number_of_questions:
-            selected_ids = {item["id"] for item in selected}
+            remaining = number_of_questions - len(selected)
+            selected.extend(other_difficulties[:remaining])
 
-            for item in other_difficulties:
-                if item["id"] not in selected_ids:
-                    selected.append(item)
-                    selected_ids.add(item["id"])
-
-                if len(selected) >= number_of_questions:
-                    break
-
-        if len(selected) < number_of_questions:
-            additional = self._generate_questions(
-                role=role,
-                skills=skills,
-                difficulty=difficulty,
-                number_needed=number_of_questions - len(selected),
-                existing_questions=selected,
-            )
-            selected.extend(additional)
-
+        # Never call the OpenAI API as a fallback.
         if len(selected) < number_of_questions:
             raise ValueError(
-                f"Only {len(selected)} questions are available; "
-                f"{number_of_questions} requested."
+                f"Only {len(selected)} relevant offline questions are "
+                f"available for {role} with the selected skills. "
+                f"Available: {len(selected)}; requested: "
+                f"{number_of_questions}. Add more questions to the local bank."
             )
 
         return [
             {
-                "id": item["id"],
+                "id": str(item["id"]),
                 "question": item["question"],
                 "role": item["role"],
                 "skills": list(item.get("skills", [])),

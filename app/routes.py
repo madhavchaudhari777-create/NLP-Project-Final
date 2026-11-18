@@ -668,6 +668,16 @@ def evaluate_answer():
     return jsonify(
         success=True,
         evaluation=result["evaluation"],
+        
+        reference_answer=question_item.get("reference_answer"),
+        show_reference_answer=(
+        result["evaluation"].get("answer_status") in [
+            "incorrect",
+            "irrelevant"
+        ]
+        or float(result["evaluation"].get("score", 0)) < 6
+        ),
+        
         nlp_summary={
             "word_count": result["nlp_analysis"].get(
                 "word_count", len(answer.strip().split())
