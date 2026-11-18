@@ -1,0 +1,9 @@
+Flask
+nltk
+openai
+python-dotenv
+numpy
+scikit-learn
+torch
+transformers
+sentence-transformers
