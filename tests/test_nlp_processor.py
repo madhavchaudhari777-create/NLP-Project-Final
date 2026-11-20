@@ -54,6 +54,93 @@ class TestNLPProcessor(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.processor.analyze_answer(None)
 
+    def test_stem(self):
+        result = self.processor.stem("computing computers computed")
+        # Porter stemmer should reduce these to "comput"
+        self.assertIn("comput", result)
+
+    def test_lemmatize(self):
+        result = self.processor.lemmatize("computing computers computed")
+        # WordNet lemmatizer should reduce these to "computing", "computer", "compute"
+        self.assertIn("compute", result)
+        self.assertIn("computer", result)
+
+    def test_analyze_answer_includes_stemmed_and_lemmatized(self):
+        result = self.processor.analyze_answer(
+            "Python helps building machine learning models."
+        )
+        self.assertIn("stemmed_tokens", result)
+        self.assertIn("lemmatized_tokens", result)
+        self.assertIsInstance(result["stemmed_tokens"], list)
+        self.assertIsInstance(result["lemmatized_tokens"], list)
+        self.assertTrue(len(result["stemmed_tokens"]) > 0)
+        self.assertTrue(len(result["lemmatized_tokens"]) > 0)
+
+    def test_analyze_sentiment(self):
+        result = self.processor.analyze_sentiment(
+            "I love Python! It's amazing and wonderful."
+        )
+        self.assertIn("compound", result)
+        self.assertIn("positive", result)
+        self.assertIn("negative", result)
+        self.assertIn("neutral", result)
+        self.assertIn("label", result)
+        self.assertIn(result["label"], ["positive", "negative", "neutral"])
+
+    def test_analyze_sentiment_negative(self):
+        result = self.processor.analyze_sentiment(
+            "I hate this terrible awful code."
+        )
+        self.assertIn("label", result)
+        self.assertEqual(result["label"], "negative")
+
+    def test_analyze_sentiment_neutral(self):
+        result = self.processor.analyze_sentiment(
+            "Python is a programming language."
+        )
+        self.assertIn("label", result)
+        self.assertEqual(result["label"], "neutral")
+
+    def test_analyze_answer_includes_sentiment(self):
+        result = self.processor.analyze_answer(
+            "Python is great for machine learning."
+        )
+        self.assertIn("sentiment", result)
+        self.assertIn("compound", result["sentiment"])
+        self.assertIn("label", result["sentiment"])
+
+    def test_extract_topics_lda_insufficient_docs(self):
+        # Need at least 2 documents
+        result = self.processor.extract_topics_lda(["Only one document"])
+        self.assertIn("topics", result)
+        self.assertEqual(result["topics"], [])
+
+    def test_extract_topics_lda(self):
+        docs = [
+            "Python machine learning data science neural networks",
+            "SQL database query optimization indexing performance",
+            "Python web development flask django rest api"
+        ]
+        result = self.processor.extract_topics_lda(docs, n_topics=3, n_words=5)
+        self.assertIn("topics", result)
+        self.assertIn("topic_distributions", result)
+        self.assertIn("n_topics", result)
+        # If sklearn is available, we should get topics
+        # If not, we get a note
+        if "note" not in result:
+            self.assertTrue(len(result["topics"]) > 0)
+
+    def test_get_answer_topics_with_reference(self):
+        ref_docs = [
+            "Python machine learning data science neural networks",
+            "SQL database query optimization indexing performance"
+        ]
+        answer = "I love Python for data science and machine learning"
+        result = self.processor.get_answer_topics(answer, reference_documents=ref_docs)
+        self.assertIn("topic_distribution", result)
+        self.assertIn("topics", result)
+        self.assertIn("n_topics", result)
+
 
 if __name__ == "__main__":
     unittest.main()
