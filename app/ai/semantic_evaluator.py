@@ -1,25 +1,12 @@
 """
-Semantic Evaluator Module
-Part of Enhancement 1: Dense Vector Semantic Representations & Embeddings
-
-Computes semantic similarity between candidate responses and technical reference answers
-using dense embeddings (Sentence-Transformers all-MiniLM-L6-v2) or statistical
-n-gram vector cosine similarity.
+Semantic Evaluator Module - Vercel Compatible Version
+Computes semantic similarity using statistical TF-IDF + character n-gram cosine similarity.
+No heavy ML dependencies (no PyTorch, Transformers, or Sentence-Transformers).
 """
 
 import math
 import re
 from typing import Dict, Any, List, Optional
-
-# Attempt optional PyTorch & Transformers imports safely
-try:
-    import torch
-    import torch.nn.functional as F
-    from transformers import AutoTokenizer, AutoModel
-    TRANSFORMERS_AVAILABLE = True
-except Exception:
-    TRANSFORMERS_AVAILABLE = False
-    torch = None
 
 # Attempt scikit-learn for robust statistical fallback
 try:
@@ -33,107 +20,24 @@ except Exception:
 class SemanticEvaluator:
     """
     Evaluates semantic meaning and conceptual alignment between candidate answers
-    and reference technical answers.
+    and reference technical answers using statistical methods only.
+    Lightweight version for serverless deployment (Vercel compatible).
     """
-
-    MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
     def __init__(
         self,
-        use_transformers: bool = True,
+        use_transformers: bool = False,  # Disabled for Vercel
         model_name: Optional[str] = None,
         allow_download: bool = False
     ):
-        self.model_name = model_name or self.MODEL_NAME
-        self.use_transformers = use_transformers and TRANSFORMERS_AVAILABLE
-        self.allow_download = allow_download
+        # Vercel-compatible: always use statistical fallback
+        self.use_transformers = False
+        self.model_name = model_name
+        self.allow_download = False
         self.tokenizer = None
         self.model = None
-        self.device = "cuda" if (torch and torch.cuda.is_available()) else "cpu"
         self._is_transformer_loaded = False
-        self._load_attempted = False
-
-    def _lazy_load_transformer(self) -> bool:
-        """Safely attempt to load tokenizer and model without blocking on network retries if offline."""
-        if self._load_attempted:
-            return self._is_transformer_loaded
-
         self._load_attempted = True
-        if not self.use_transformers:
-            return False
-
-        # 1. First attempt to load from local cache with local_files_only=True
-        # This is instantaneous and avoids multi-second network retry loops when offline.
-        try:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                local_files_only=True
-            )
-            self.model = AutoModel.from_pretrained(
-                self.model_name,
-                local_files_only=True
-            )
-            self.model.to(self.device)
-            self.model.eval()
-            self._is_transformer_loaded = True
-            return True
-        except Exception:
-            pass
-
-        # 2. Only attempt online download if explicitly permitted
-        if self.allow_download:
-            try:
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    self.model_name,
-                    local_files_only=False
-                )
-                self.model = AutoModel.from_pretrained(
-                    self.model_name,
-                    local_files_only=False
-                )
-                self.model.to(self.device)
-                self.model.eval()
-                self._is_transformer_loaded = True
-                return True
-            except Exception:
-                self._is_transformer_loaded = False
-                return False
-
-        self._is_transformer_loaded = False
-        return False
-
-    @staticmethod
-    def _mean_pooling(model_output, attention_mask):
-        """Mean Pooling - Take attention mask into account for correct averaging."""
-        token_embeddings = model_output[0]  # First element contains hidden state
-        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-        sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
-        sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-        return sum_embeddings / sum_mask
-
-    def _transformer_similarity(self, text1: str, text2: str) -> float:
-        """Compute cosine similarity using 384-dimensional dense transformer embeddings."""
-        if not self._lazy_load_transformer():
-            raise RuntimeError("Transformer model not loaded.")
-
-        encoded = self.tokenizer(
-            [text1, text2],
-            padding=True,
-            truncation=True,
-            max_length=256,
-            return_tensors="pt"
-        )
-        encoded = {k: v.to(self.device) for k, v in encoded.items()}
-
-        with torch.no_grad():
-            outputs = self.model(**encoded)
-
-        sentence_embeddings = self._mean_pooling(outputs, encoded["attention_mask"])
-        # Normalize vectors to unit length
-        sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
-
-        sim = F.cosine_similarity(sentence_embeddings[0:1], sentence_embeddings[1:2]).item()
-        return max(0.0, min(1.0, float(sim)))
 
     @staticmethod
     def _clean_text(text: str) -> str:
@@ -194,7 +98,7 @@ class SemanticEvaluator:
         if not student_answer or not student_answer.strip():
             return {
                 "similarity": 0.0,
-                "engine": "none",
+                "engine": "statistical_tfidf",
                 "tier": "Empty answer",
                 "is_aligned": False
             }
@@ -202,23 +106,13 @@ class SemanticEvaluator:
         if not reference_answer or not reference_answer.strip():
             return {
                 "similarity": 0.0,
-                "engine": "none",
+                "engine": "statistical_tfidf",
                 "tier": "No reference provided",
                 "is_aligned": False
             }
 
-        engine = "statistical_vector_tfidf"
-        similarity = 0.0
-
-        if self.use_transformers and self._lazy_load_transformer():
-            try:
-                similarity = self._transformer_similarity(student_answer, reference_answer)
-                engine = "sentence_transformers_minilm"
-            except Exception:
-                similarity = self._statistical_vector_similarity(student_answer, reference_answer)
-                engine = "statistical_vector_fallback"
-        else:
-            similarity = self._statistical_vector_similarity(student_answer, reference_answer)
+        similarity = self._statistical_vector_similarity(student_answer, reference_answer)
+        engine = "statistical_tfidf"
 
         # Calibrate alignment tier based on cosine similarity
         if similarity >= 0.80:

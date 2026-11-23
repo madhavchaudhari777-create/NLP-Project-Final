@@ -1,6 +1,8 @@
 import os
 from flask import Flask, jsonify
-from app.db import init_db
+
+# Vercel serverless detection
+IS_VERCEL = os.getenv("VERCEL") == "1"
 
 
 def create_app(test_config=None):
@@ -11,16 +13,32 @@ def create_app(test_config=None):
         "dev-only-change-this-secret",
     )
 
-    db_path = os.getenv(
-        "DATABASE_PATH",
-        os.path.join(app.instance_path, "interviews.db")
-    )
-    app.config["DATABASE_PATH"] = db_path
+    # Database configuration
+    if IS_VERCEL:
+        # Use PostgreSQL on Vercel (Vercel Postgres or external)
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            app.config["DATABASE_URL"] = database_url
+            app.config["DATABASE_PATH"] = database_url
+        else:
+            # Fallback for local development
+            db_path = os.getenv(
+                "DATABASE_PATH",
+                os.path.join(app.instance_path, "interviews.db")
+            )
+            app.config["DATABASE_PATH"] = db_path
+    else:
+        db_path = os.getenv(
+            "DATABASE_PATH",
+            os.path.join(app.instance_path, "interviews.db")
+        )
+        app.config["DATABASE_PATH"] = db_path
 
     if test_config:
         app.config.update(test_config)
 
-    # Ensure database tables exist
+    # Initialize database
+    from app.db import init_db
     init_db(app.config["DATABASE_PATH"])
 
     from app.routes import main
