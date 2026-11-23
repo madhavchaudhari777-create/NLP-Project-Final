@@ -1,0 +1,1 @@
+{"question_id": "2", "question": "What is the difference between a list and a tuple?", "answer": "Lists are mutable, tuples are immutable. Lists can be changed after creation, tuples cannot."}
