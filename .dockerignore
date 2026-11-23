@@ -1,0 +1,74 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+.coverage
+.tox
+.mypy_cache
+.ruff_cache
+
+# Virtual environments
+venv
+env
+.env
+.venv
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+instance/*.db
+instance/*.db-journal
+*.sqlite
+*.sqlite3
+
+# ML Models (large files)
+*.pt
+*.bin
+*.onnx
+model/
+models/
+*.safetensors
+
+# Logs
+*.log
+logs/
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Documentation
+*.md
+docs/
+
+# CI/CD
+.github/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
