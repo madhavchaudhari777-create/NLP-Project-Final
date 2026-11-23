@@ -1,9 +1,6 @@
 from uuid import uuid4
-<<<<<<< HEAD
 import pandas as pd
 import os
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
 from flask import (
     Blueprint,
@@ -213,7 +210,6 @@ def current_user_info():
     ), 200
 
 
-<<<<<<< HEAD
 @main.route("/api/dataset/stats", methods=["GET"])
 def dataset_stats():
     """Return cleaned dataset preprocessing statistics (CO1 evidence)."""
@@ -234,8 +230,6 @@ def dataset_stats():
         return jsonify(success=False, error=str(e)), 500
 
 
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 # ---------------- Student Dashboard Endpoints ----------------
 
 @main.route("/api/student/dashboard", methods=["GET"])
@@ -354,7 +348,6 @@ def teacher_analytics():
     return jsonify(success=True, analytics=stats), 200
 
 
-<<<<<<< HEAD
 @main.route("/api/teacher/topics", methods=["GET"])
 @teacher_required
 def teacher_topics():
@@ -386,8 +379,6 @@ def teacher_topics():
         return jsonify(success=False, error=str(e)), 500
 
 
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 @main.route("/api/teacher/students", methods=["GET"])
 @teacher_required
 def teacher_students_list():
@@ -534,11 +525,7 @@ def interview_setup():
         ), 400
 
     dialogue_manager = DialogueManager()
-<<<<<<< HEAD
     dialogue_manager.total_questions = len(questions)
-=======
-    dialogue_manager.total_questions = number_of_questions
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
     dialogue_manager.current_difficulty = difficulty
 
     interview_service = InterviewService(
@@ -565,11 +552,7 @@ def interview_setup():
             "difficulty": difficulty,
         },
         "questions": question_pool,
-<<<<<<< HEAD
         "total_questions": len(questions),
-=======
-        "total_questions": number_of_questions,
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         "answered_question_ids": set(),
         "current_question_id": None,
     }
@@ -586,11 +569,7 @@ def interview_setup():
         role_applied=role,
         target_skills=skills,
         difficulty=difficulty,
-<<<<<<< HEAD
         total_questions=len(questions),
-=======
-        total_questions=number_of_questions,
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
     )
 
     return jsonify(
@@ -598,17 +577,10 @@ def interview_setup():
         interview_id=interview_id,
         candidate={
             **interview["candidate"],
-<<<<<<< HEAD
             "number_of_questions": len(questions),
         },
         question=public_question(first_question),
         progress={"answered": 0, "total": len(questions)},
-=======
-            "number_of_questions": number_of_questions,
-        },
-        question=public_question(first_question),
-        progress={"answered": 0, "total": number_of_questions},
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
     ), 200
 
 
@@ -690,7 +662,6 @@ def evaluate_answer():
         )
     except ValueError as error:
         return jsonify(success=False, error=str(error)), 400
-<<<<<<< HEAD
     except Exception as e:
         import traceback
         tb = traceback.format_exc()
@@ -699,18 +670,10 @@ def evaluate_answer():
             success=False,
             error=f"Server error: {str(e)}",
             traceback=tb,
-=======
-    except Exception:
-        current_app.logger.exception("Answer evaluation failed.")
-        return jsonify(
-            success=False,
-            error="Unable to evaluate this answer. Please try again.",
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         ), 500
 
     interview["answered_question_ids"].add(question_id)
 
-<<<<<<< HEAD
     # Persist the answer evaluation in SQLite (never crash the request if DB fails).
     try:
         record_interview_answer(
@@ -723,17 +686,6 @@ def evaluate_answer():
         )
     except Exception:
         current_app.logger.exception("Failed to persist interview answer.")
-=======
-    # Persist the answer evaluation in SQLite
-    record_interview_answer(
-        interview_id=interview_id,
-        question_id=question_id,
-        question_text=question_item["question"],
-        difficulty=result.get("difficulty", question_item.get("difficulty", "Intermediate")),
-        student_answer=answer.strip(),
-        evaluation=result["evaluation"],
-    )
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
     answered = len(interview["answered_question_ids"])
     total = interview["total_questions"]
@@ -744,7 +696,6 @@ def evaluate_answer():
 
     # If interview is complete, finalize record in database
     if finished:
-<<<<<<< HEAD
         try:
             history = interview["service"].get_evaluation_history()
             total_score = sum(
@@ -764,18 +715,6 @@ def evaluate_answer():
             )
         except Exception:
             current_app.logger.exception("Failed to finalize interview.")
-=======
-        history = interview["service"].get_evaluation_history()
-        total_score = sum(float(item["evaluation"].get("score", 0.0)) for item in history)
-        max_possible = sum(float(item["evaluation"].get("max_score", 10.0)) for item in history)
-        percentage = round((total_score / max_possible * 100), 1) if max_possible > 0 else 0.0
-        finalize_interview(
-            interview_id=interview_id,
-            total_score=total_score,
-            max_score=max_possible,
-            percentage=percentage,
-        )
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
     next_question = None
 
@@ -783,7 +722,6 @@ def evaluate_answer():
         next_difficulty = interview["service"].dialogue_manager.current_difficulty
         next_question = choose_next_question(interview, next_difficulty)
 
-<<<<<<< HEAD
         # Fallback: if choose_next_question returns None but there are still
         # unanswered questions, find one manually.
         if next_question is None and answered < total:
@@ -793,12 +731,9 @@ def evaluate_answer():
                     break
 
         if next_question is None:
-=======
-        if next_question is None:
             current_app.logger.error(
                 "Question pool exhausted before the requested question count."
             )
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
             return jsonify(
                 success=False,
                 error="No more questions are available. Please restart the interview.",
@@ -809,7 +744,6 @@ def evaluate_answer():
     return jsonify(
         success=True,
         evaluation=result["evaluation"],
-<<<<<<< HEAD
         interview_complete=state.get("interview_complete", False),
         adaptation=result.get("adaptation", {}),
         interview_state=state,
@@ -818,43 +752,24 @@ def evaluate_answer():
             "answered": len(interview["answered_question_ids"]),
             "total": interview["total_questions"],
         },
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
-        
         reference_answer=question_item.get("reference_answer"),
         show_reference_answer=(
-        result["evaluation"].get("answer_status") in [
-            "incorrect",
-            "irrelevant"
-        ]
-        or float(result["evaluation"].get("score", 0)) < 6
+            result["evaluation"].get("answer_status") in [
+                "incorrect",
+                "irrelevant"
+            ]
+            or float(result["evaluation"].get("score", 0)) < 6
         ),
-        
-<<<<<<< HEAD
-                nlp_summary={
-=======
         nlp_summary={
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
             "word_count": result["nlp_analysis"].get(
                 "word_count", len(answer.strip().split())
             ),
             "skills_detected": result["nlp_analysis"].get("skills", []),
             "keywords": result["nlp_analysis"].get("keywords", []),
-<<<<<<< HEAD
             "sentiment": result["nlp_analysis"].get("sentiment", {}),
             "similarity": result["evaluation"].get("semantic_similarity"),
             "similarity_engine": result["evaluation"].get("semantic_engine"),
         },
-=======
-        },
-        adaptation=result["adaptation"],
-        interview_state=state,
-        progress={"answered": answered, "total": total},
-        interview_complete=finished,
-        next_question=(
-            public_question(next_question) if next_question else None
-        ),
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
     ), 200
 
 

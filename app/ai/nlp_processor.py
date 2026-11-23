@@ -1,8 +1,6 @@
-
 import re
 from collections import Counter
 
-<<<<<<< HEAD
 import nltk
 
 # Download required NLTK data quietly.
@@ -12,8 +10,6 @@ for _pkg in ("vader_lexicon", "punkt", "wordnet", "omw-1.4"):
     except Exception:
         pass
 
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 # Attempt NLTK imports for stemming and lemmatization
 try:
     from nltk.stem import PorterStemmer, WordNetLemmatizer

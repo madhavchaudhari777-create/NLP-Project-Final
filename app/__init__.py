@@ -1,9 +1,5 @@
 import os
-<<<<<<< HEAD
 from flask import Flask, jsonify
-=======
-from flask import Flask
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 from app.db import init_db
 
 
@@ -30,7 +26,6 @@ def create_app(test_config=None):
     from app.routes import main
     app.register_blueprint(main)
 
-<<<<<<< HEAD
     # Return JSON instead of HTML for 500 errors so the frontend can parse it.
     @app.errorhandler(500)
     def handle_500(e):
@@ -40,6 +35,4 @@ def create_app(test_config=None):
     def handle_404(e):
         return jsonify(success=False, error="Endpoint not found."), 404
 
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
     return app

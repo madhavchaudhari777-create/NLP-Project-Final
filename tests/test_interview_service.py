@@ -156,11 +156,7 @@ class TestInterviewService(unittest.TestCase):
         self.local.evaluate_answer.assert_not_called()
 
     def test_non_string_answer_is_rejected(self):
-<<<<<<< HEAD
         with self.assertRaises(ValueError):
-=======
-        with self.assertRaises(TypeError):
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
             self.service.process_answer(
                 question=self.question,
                 answer=123,
@@ -181,12 +177,8 @@ class TestInterviewService(unittest.TestCase):
         self.llm.evaluate_answer.assert_not_called()
         self.local.evaluate_answer.assert_not_called()
 
-<<<<<<< HEAD
     def test_local_failure_uses_error_fallback(self):
         """When both LLM and local evaluator fail, return error fallback evaluation."""
-=======
-    def test_local_failure_does_not_update_dialogue(self):
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         self.llm.evaluate_answer.side_effect = RuntimeError(
             "API unavailable"
         )
@@ -194,7 +186,6 @@ class TestInterviewService(unittest.TestCase):
             "Local evaluator failed"
         )
 
-<<<<<<< HEAD
         result = self.service.process_answer(
             question=self.question,
             answer=self.answer,
@@ -206,16 +197,6 @@ class TestInterviewService(unittest.TestCase):
         self.assertIn("could not be completed", result["evaluation"]["feedback"].lower())
         
         # Dialogue should not be updated since evaluation failed
-=======
-        with self.assertRaisesRegex(
-            RuntimeError, "Local evaluator failed"
-        ):
-            self.service.process_answer(
-                question=self.question,
-                answer=self.answer,
-            )
-
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         self.dialogue.record_evaluation.assert_not_called()
 
     def test_interview_state_is_returned(self):

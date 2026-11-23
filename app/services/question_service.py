@@ -529,10 +529,7 @@ class QuestionService:
         for skill in requested_skills:
             expanded_skills.update(skill_aliases.get(skill, set()))
 
-<<<<<<< HEAD
         # First try to match both role and selected skills.
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         candidates = []
 
         for item in self.question_bank:
@@ -560,7 +557,6 @@ class QuestionService:
 
             candidates.append(item)
 
-<<<<<<< HEAD
         # Fall back to role-only questions when too few skill-matched questions exist.
         if requested_skills and len(candidates) < number_of_questions:
             existing_ids = {str(item.get("id")) for item in candidates}
@@ -583,8 +579,50 @@ class QuestionService:
                 if len(candidates) >= number_of_questions:
                     break
 
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
+        # For "General" role: if still not enough candidates, allow cross-role fallback
+        # to questions from other roles that match the requested skills.
+        # This enables requesting more questions than exist for a single role.
+        if requested_role == "general" and len(candidates) < number_of_questions:
+            existing_ids = {str(item.get("id")) for item in candidates}
+
+            for item in self.question_bank:
+                if str(item.get("id")) in excluded or str(item.get("id")) in existing_ids:
+                    continue
+
+                item_skills = {
+                    self._normalize(skill)
+                    for skill in item.get("skills", [])
+                }
+
+                # Match questions that have at least one requested skill
+                if requested_skills and item_skills.intersection(expanded_skills):
+                    candidates.append(item)
+
+                if len(candidates) >= number_of_questions:
+                    break
+
+        # For ANY role: if still not enough candidates, allow cross-role fallback
+        # to questions from other roles that match the requested skills.
+        # This enables requesting more questions than exist for a single role.
+        if len(candidates) < number_of_questions:
+            existing_ids = {str(item.get("id")) for item in candidates}
+
+            for item in self.question_bank:
+                if str(item.get("id")) in excluded or str(item.get("id")) in existing_ids:
+                    continue
+
+                item_skills = {
+                    self._normalize(skill)
+                    for skill in item.get("skills", [])
+                }
+
+                # Match questions that have at least one requested skill
+                if requested_skills and item_skills.intersection(expanded_skills):
+                    candidates.append(item)
+
+                if len(candidates) >= number_of_questions:
+                    break
+
         # Prefer exact difficulty first.
         exact_difficulty = [
             item for item in candidates
@@ -605,22 +643,12 @@ class QuestionService:
             remaining = number_of_questions - len(selected)
             selected.extend(other_difficulties[:remaining])
 
-<<<<<<< HEAD
-        # Return whatever questions are available rather than failing outright.
+# Return whatever questions are available rather than failing outright.
         # This keeps interviews runnable even when the local bank is sparse.
         if not selected:
             raise ValueError(
                 f"No relevant offline questions are available for {role} "
                 f"with the selected skills. Add more questions to the local bank."
-=======
-        # Never call the OpenAI API as a fallback.
-        if len(selected) < number_of_questions:
-            raise ValueError(
-                f"Only {len(selected)} relevant offline questions are "
-                f"available for {role} with the selected skills. "
-                f"Available: {len(selected)}; requested: "
-                f"{number_of_questions}. Add more questions to the local bank."
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
             )
 
         return [

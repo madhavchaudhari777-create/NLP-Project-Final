@@ -1,11 +1,7 @@
-
 from app.ai.nlp_processor import NLPProcessor
 from app.ai.llm_evaluator import LLMEvaluator
 from app.ai.local_evaluator import LocalEvaluator
-<<<<<<< HEAD
 from app.ai.semantic_evaluator import SemanticEvaluator
-=======
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 from app.ai.dialogue_manager import DialogueManager
 
 
@@ -21,8 +17,7 @@ class InterviewService:
     ):
         self.nlp_processor = nlp_processor or NLPProcessor()
         self.llm_evaluator = llm_evaluator or LLMEvaluator()
-<<<<<<< HEAD
-        
+
         # Use local evaluator with statistical similarity only (no transformers) 
         # for fast fallback. Transformers can be enabled via config if needed.
         if local_evaluator is None:
@@ -31,9 +26,6 @@ class InterviewService:
         else:
             self.local_evaluator = local_evaluator
             
-=======
-        self.local_evaluator = local_evaluator or LocalEvaluator()
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         self.dialogue_manager = dialogue_manager or DialogueManager()
 
         # Track answered questions and evaluation history.
@@ -51,20 +43,10 @@ class InterviewService:
     ):
         """Evaluate an answer and update adaptive interview state."""
 
-<<<<<<< HEAD
         # Validate inputs safely.
         if not isinstance(question, str) or not question.strip():
             raise ValueError("Question must not be empty.")
         if not isinstance(answer, str) or not answer.strip():
-=======
-        if not isinstance(question, str) or not question.strip():
-            raise ValueError("Question must not be empty.")
-
-        if not isinstance(answer, str):
-            raise TypeError("Answer must be a string.")
-
-        if not answer.strip():
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
             raise ValueError("Answer must not be empty.")
 
         state = self.dialogue_manager.get_state()
@@ -80,7 +62,6 @@ class InterviewService:
 
         difficulty = self.dialogue_manager.current_difficulty
 
-<<<<<<< HEAD
         # Stage 1: Analyze the answer (never let this crash the whole request).
         try:
             nlp_analysis = self.nlp_processor.analyze_answer(answer)
@@ -102,13 +83,6 @@ class InterviewService:
         # Stage 2: Evaluate using the LLM, with local fallback.
         evaluation_method = "llm"
         evaluation = None
-=======
-        # Stage 1: Analyze the answer.
-        nlp_analysis = self.nlp_processor.analyze_answer(answer)
-
-        # Stage 2: Evaluate using the LLM, with local fallback.
-        evaluation_method = "llm"
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
         try:
             evaluation = self.llm_evaluator.evaluate_answer(
@@ -126,20 +100,12 @@ class InterviewService:
                 evaluation = evaluation.model_dump()
 
             if not isinstance(evaluation, dict):
-<<<<<<< HEAD
                 raise TypeError("LLM evaluator returned an invalid result.")
-=======
-                raise TypeError(
-                    "LLM evaluator returned an invalid result."
-                )
-
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         except Exception as error:
             print(
                 "LLM evaluation unavailable; using local fallback:",
                 repr(error),
             )
-<<<<<<< HEAD
             evaluation_method = "local_fallback"
 
             try:
@@ -173,30 +139,11 @@ class InterviewService:
                 }
                 evaluation_method = "error_fallback"
 
-=======
-
-            evaluation_method = "local_fallback"
-
-            evaluation = self.local_evaluator.evaluate_answer(
-                question=question,
-                answer=answer,
-                role=role,
-                difficulty=difficulty,
-                max_score=max_score,
-                reference_answer=reference_answer,
-                nlp_analysis=nlp_analysis,
-            )
-
-        if not isinstance(evaluation, dict):
-            raise TypeError("Evaluator returned an invalid result.")
-
         # Avoid modifying an evaluator's shared result dictionary.
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
         evaluation = dict(evaluation)
         evaluation["evaluation_method"] = evaluation_method
 
         # Stage 3: Update adaptive dialogue after successful evaluation.
-<<<<<<< HEAD
         # Skip dialogue update for error fallback (not a real evaluation).
         if evaluation_method == "error_fallback":
             adaptation = {
@@ -220,11 +167,6 @@ class InterviewService:
                     "next_difficulty": difficulty,
                     "interview_complete": False,
                 }
-=======
-        adaptation = self.dialogue_manager.record_evaluation(
-            evaluation
-        )
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
         # Track the question only after evaluation succeeds.
         if question_id is not None:

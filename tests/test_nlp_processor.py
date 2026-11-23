@@ -61,17 +61,11 @@ class TestNLPProcessor(unittest.TestCase):
 
     def test_lemmatize(self):
         result = self.processor.lemmatize("computing computers computed")
-<<<<<<< HEAD
         # WordNet lemmatizer with heuristic POS tagging:
         # "computing" -> "compute" (verb), "computers" -> "computers" (treated as verb), "computed" -> "compute" (verb)
         self.assertIn("compute", result)
         # "computers" is not reduced due to heuristic POS tagging limitation
         self.assertIn("computers", result)
-=======
-        # WordNet lemmatizer should reduce these to "computing", "computer", "compute"
-        self.assertIn("compute", result)
-        self.assertIn("computer", result)
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
     def test_analyze_answer_includes_stemmed_and_lemmatized(self):
         result = self.processor.analyze_answer(

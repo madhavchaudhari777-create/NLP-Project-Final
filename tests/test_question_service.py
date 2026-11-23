@@ -60,14 +60,10 @@ class TestQuestionService(unittest.TestCase):
             number_of_questions=1,
         )
 
-<<<<<<< HEAD
-        # Should match a Data Analyst question with SQL skill (id 39: INNER JOIN vs LEFT JOIN)
+# Should match a Data Analyst question with SQL skill (id 39: INNER JOIN vs LEFT JOIN)
         self.assertEqual(int(questions[0]["id"]), 39)
         self.assertEqual(questions[0]["role"], "data analyst")
         self.assertIn("sql", [s.lower() for s in questions[0]["skills"]])
-=======
-        self.assertEqual(questions[0]["id"], 10)
->>>>>>> 175a800e5e426185646cda9d95847bc0bdb8e082
 
     def test_invalid_role_is_rejected(self):
         with self.assertRaises(ValueError):
