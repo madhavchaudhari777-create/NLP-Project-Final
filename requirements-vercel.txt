@@ -1,0 +1,23 @@
+# Vercel-compatible requirements (lightweight only)
+# Core web framework
+Flask>=3.0.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# NLP Core (lightweight only)
+nltk>=3.8.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# LLM Integration (uses OpenAI API instead of local models)
+openai>=1.0.0
+
+# Production server (not used on Vercel but needed for compatibility)
+gunicorn>=21.0.0
+
+# Database - PostgreSQL for Vercel Postgres
+psycopg2-binary>=2.9.0
+
+# Optional: Vercel KV for sessions
+# redis>=4.5.0
